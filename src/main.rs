@@ -1,6 +1,9 @@
-use std::fs::File;
+use std::fs;
 use std::io::{BufWriter, Read, Write};
 use std::process::Command;
+use std::env;
+use std::fmt::format;
+use std::path::Path;
 
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
@@ -14,20 +17,22 @@ fn main() {
     let command = &args[1];
     println!("{:?}", args);
     if tool_name.ends_with("nar") {
+        let cli_tool_in_os = check_for_cli_tools();
         match command.as_str() {
             "cf" => {
                 if verify_length(&args, 3) {
                     println!("creating file with name: {}", args[2]);
-                    File::create(&args[2]).expect("Error creating file");
+                    fs::File::create(&args[2]).expect("Error creating file");
                 } else {
                     println!("No target file name given");
                 }
             }
             "cwa" => {
+
                 if verify_length(&args, 4) {
                     println!("Creating webapp with the {}", args[2]);
                     //checks wich manager the os has as package manager
-                    let cli_tool_in_os = check_for_cli_tools();
+
                     if cli_tool_in_os.is_empty() {
                         println!("You should install either one of the following tools:");
                         show_package_managers();
@@ -42,8 +47,23 @@ fn main() {
             }
             "capi" => {
                 if verify_length(&args, 4){
-                    println!("Creating API with the {}", args[2]);
-                    //checks wich manager the os has as a package manager
+                    let api_name = &args[2];
+                    println!("Creating API {}", api_name.clone());
+                    let path_str = format!("./{}",api_name);
+                    let path = Path::new(&path_str);
+                    if path.exists(){
+                        println!("A folder with that name exists in the current directory");
+                        return;
+                    }
+
+                    fs::create_dir_all(path).expect("Something went wrong when creating a folder");
+                    env::set_current_dir(path);
+                    todo!("decide what language/library/framework to choose");
+
+
+                }else{
+                    println!("No name or template was choosen for the project");
+                    println!("nar capi <name of project> <template>");
                 }
             }
             _ => {
@@ -53,6 +73,7 @@ fn main() {
     }
 }
 
+//Functions
 fn verify_length(vector: &Vec<String>, length: usize) -> bool {
     if vector.len() == length {
         true
