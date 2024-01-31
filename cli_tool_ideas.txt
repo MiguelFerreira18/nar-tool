@@ -1,6 +1,0 @@
-- criar ficheiros
-- criar projetos
-- Anime info
-- recomendações de anime
-- Manter um tracking no que sigo
-
