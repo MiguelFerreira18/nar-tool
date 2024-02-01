@@ -72,17 +72,15 @@ fn main() {
                     };
                     match number {
                         1 => { create_deno_api(api_name); }
-                        2 => { let _ = create_java_api(api_name); }
-                        3 => {}
+                        2 => { create_java_api(api_name); }
+                        3 => { create_python_api(api_name);}
                         4 => {}
                         5 => {}
                         _ => println!("No option was selected")
                     }
 
 
-                    // fs::create_dir_all(path).expect("Something went wrong when creating a folder");
-                    // env::set_current_dir(path);
-                    todo!("decide what language/library/framework to choose");
+
                 } else {
                     println!("No name or template was choosen for the project");
                     println!("nar capi <name of project>");
@@ -155,8 +153,8 @@ fn show_package_managers() {
 fn web_api_list() {
     println!("Choose a project template:");
     println!("1 - Typescript (deno + express)");
-    println!("2 - Java (Springboot) <em desenvolvimento>");
-    println!("3 - Python (flask) <em desenvolvimento>");
+    println!("2 - Java (Springboot)");
+    println!("3 - Python (flask)");
     println!("4 - Elixir (Phoenix) <em desenvolvimento>");
     println!("5 - Go (Gorila Mux + Gin) <em desenvolvimento>");
 }
@@ -218,6 +216,32 @@ fn create_java_api(app_name: &str) {
     let command = format!("curl -o {}.zip {}", app_name, url_link);
     println!("{}",command);
     execute_os_command(command.as_str());
+}
+
+fn create_python_api(app_name:&str){
+    let path = format!("./{}",app_name);
+    fs::create_dir_all(&path).expect("Error creating project folder");
+    env::set_current_dir(&path).expect(format!("The {} doesn't exist", path).as_str());
+
+    let create_env_command = "python3 -m venv .venv";
+    let activate_env_and_install_flask = if cfg!(target_os = "windows") {
+        ".venv\\Scripts\\activate && pip install Flask"
+    } else {
+        "source .venv/bin/activate && pip install Flask"
+    };
+    let main_script = "main.py";
+    let template_folder = "templates";
+    let sample_code = "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hello_flask():\n  return '<p>Hello, world!</p>'";
+
+    execute_os_command(create_env_command);
+    execute_os_command(activate_env_and_install_flask);
+    // execute_os_command(install_flask);
+    File::create(main_script).expect(format!("Failed to create {}",main_script).as_str());
+    fs::create_dir_all(template_folder).expect("Failed to create template folder");
+    let sample_code_path = format!("./{}",main_script);
+    fs::write(sample_code_path,sample_code).expect("Failed to write sample code");
+
+    println!("To run the execute the commands:\n .venv/Scripts/activate | flask --app main run");
 
 
 }
