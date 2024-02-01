@@ -4,28 +4,27 @@ use std::process::Command;
 
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
-        println!("Usage: nar <command> <input>");
+    if args.len() < 2 {
+        println!("Usage: mut <command> <input>");
         return;
     }
-    println!("{:?}", args);
-    args.remove(0);
-    let tool_name = &args[0];
-    let command = &args[1];
-    println!("{:?}", args);
-    if tool_name.ends_with("nar") {
-        match command.as_str() {
-            "cf" => {
-                if verify_length(&args, 3) {
-                    println!("creating file with name: {}", args[2]);
-                    File::create(&args[2]).expect("Error creating file");
-                } else {
-                    println!("No target file name given");
+    let command = std::env::args().nth(1).unwrap();
+    let file_name = std::env::args().nth(2);
+    match command.as_str() {
+        "cf" => {
+            if let Some(file_name) = file_name {
+                if verify_length(&args, 2) {
+                    println!("creating file with name: {}", file_name);
+                    File::create(file_name).expect("Error creating file");
                 }
+            } else {
+                println!("No target file name given");
             }
-            "cwa" => {
-                if verify_length(&args, 4) {
-                    println!("Creating webapp with the {}", args[2]);
+        }
+        "cwa" => {
+            if let Some(file_name) = file_name {
+                if verify_length(&args, 3) {
+                    println!("Creating webapp with the {}", file_name);
                     //checks wich manager the os has as package manager
                     let cli_tool_in_os = check_for_cli_tools();
                     if cli_tool_in_os.is_empty() {
@@ -33,22 +32,24 @@ fn main() {
                         show_package_managers();
                         return;
                     }
-                    let command = format!("{} create vite {} -- --template {}", &cli_tool_in_os, args[2], args[3]);
+                    let command = format!("{} create vite {} -- --template {}", &cli_tool_in_os, file_name, args[3]);
                     execute_os_command(command.as_str());
                 } else {
                     println!("No name or template was choosen for the project");
-                    println!("nar wa <name of project> <template>");
+                    println!("mut wa <name of project> <template>");
                 }
             }
-            "capi" => {
-                if verify_length(&args, 4){
-                    println!("Creating API with the {}", args[2]);
+        }
+        "capi" => {
+            if let Some(file_name) = file_name {
+                if verify_length(&args, 3) {
+                    println!("Creating API with the {}", file_name);
                     //checks wich manager the os has as a package manager
                 }
             }
-            _ => {
-                println!("Unknown command: {}", command);
-            }
+        }
+        _ => {
+            println!("Unknown command: {}", command);
         }
     }
 }
@@ -94,12 +95,12 @@ fn check_for_cli_tools() -> Box<str> {
                 .expect("Failed to execute command")
         };
 
-        if output.status.success(){
+        if output.status.success() {
             result = name.to_string();
             break;
         }
     }
-        result.into_boxed_str()
+    result.into_boxed_str()
 }
 
 fn show_package_managers() {
