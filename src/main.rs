@@ -1,100 +1,96 @@
 use std::{fs, io};
-use std::io::{Write};
+use std::io::{stdin, Write};
 use std::process::Command;
 use std::env;
 use std::fs::File;
 use std::path::Path;
 
 fn main() {
-    let mut args: Vec<String> = std::env::args().collect();
-    if args.len() < 2 {
+    let mut args: Vec<String> = env::args().collect();
+    if args.len() < 3 {
         println!("Usage: mut <command> <input>");
         return;
     }
-    let command = std::env::args().nth(1).unwrap();
-    let file_name = std::env::args().nth(2);
+    let command = env::args().nth(1).unwrap();
+    let file_name = env::args().nth(2).unwrap();
+    let cli_tool_in_os = check_for_cli_tools();
     match command.as_str() {
         "cf" => {
-            if let Some(file_name) = file_name {
-                if verify_length(&args, 2) {
-                    println!("creating file with name: {}", file_name);
-                    File::create(file_name).expect("Error creating file");
-                }
+            if !file_name.is_empty() {
+                println!("creating file with name: {}", file_name);
+                File::create(file_name).expect("Error creating file");
             } else {
                 println!("No target file name given");
             }
         }
         "cwa" => {
-            if let Some(file_name) = file_name {
-                if verify_length(&args, 3) {
-                    println!("Creating webapp with the {}", file_name);
-                    //checks wich manager the os has as package manager
+            if !file_name.is_empty(){
 
-                    if cli_tool_in_os.is_empty() {
-                        println!("You should install either one of the following tools:");
-                        show_package_managers();
-                        return;
-                    }
-                    let command = format!("{} create vite {} -- --template {}", &cli_tool_in_os, file_name, args[3]);
-                    execute_os_command(command.as_str());
-                } else {
-                    println!("No name or template was choosen for the project");
-                    println!("mut wa <name of project> <template>");
+                webapp_list();
+                let mut webapp_framework = String::new();
+                stdin().read_line(&mut webapp_framework).unwrap();
+
+                println!("Creating webapp with the {}", file_name);
+                //checks wich manager the os has as package manager
+
+                if cli_tool_in_os.is_empty() {
+                    println!("You should install either one of the following tools:");
+                    show_package_managers();
+                    return;
                 }
+
+                let command = format!("{} create vite {} -- --template {}", &cli_tool_in_os, file_name, webapp_framework);
+                execute_os_command(command.as_str());
+            } else {
+                println!("No name or template was choosen for the project");
+                println!("mut wa <name of project> <template>");
             }
         }
-            "capi" => {
-              if let Some(file_name) = file_name {
-                if verify_length(&args, 3) {
-                    let api_name = file_name;
-                    println!("Creating API {}", api_name.clone());
-                    let path_str = format!("./{}", api_name);
-                    let path = Path::new(&path_str);
-                    if path.exists() {
-                        println!("A folder with that name exists in the current directory");
-                        return;
-                    }
-                    let number = loop {
-                        let mut input = String::new();
-                        web_api_list();
-                        io::stdout().flush().unwrap();
-                        io::stdin().read_line(&mut input).unwrap();
-
-                        match input.trim().parse::<i32>() {
-                            Ok(n) if n >= 1 && n <= 5 => break n,
-                            Ok(_) => println!("The number must be between 1 and 5. Please try again."),
-                            Err(_) => println!("That's not a valid number! Please try again."),
-                        }
-                    };
-                    match number {
-                        1 => { create_deno_api(api_name); }
-                        2 => { create_java_api(api_name); }
-                        3 => { create_python_api(api_name);}
-                        4 => {}
-                        5 => {}
-                        _ => println!("No option was selected")
-                    }
-
-
-
-                } else {
-                    println!("No name or template was choosen for the project");
-                    println!("mut capi <name of project>");
+        "capi" => {
+            if !file_name.is_empty() {
+                let api_name = file_name.as_str();
+                println!("Creating API {}", api_name);
+                let path_str = format!("./{}", api_name);
+                let path = Path::new(&path_str);
+                if path.exists() {
+                    println!("A folder with that name exists in the current directory");
+                    return;
                 }
-              }
+                let number = loop {
+                    let mut input = String::new();
+                    web_api_list();
+                    io::stdout().flush().unwrap();
+                    io::stdin().read_line(&mut input).unwrap();
+
+                    match input.trim().parse::<i32>() {
+                        Ok(n) if n >= 1 && n <= 5 => break n,
+                        Ok(_) => println!("The number must be between 1 and 5. Please try again."),
+                        Err(_) => println!("That's not a valid number! Please try again."),
+                    }
+                };
+                match number {
+                    1 => { create_deno_api(api_name); }
+                    2 => { create_java_api(api_name); }
+                    3 => { create_python_api(api_name); }
+                    4 => {}
+                    5 => {}
+                    _ => println!("No option was selected")
+                }
+            } else {
+                println!("No name or template was choosen for the project");
+                println!("mut capi <name of project>");
             }
-                  
         }
         _ => {
             println!("Unknown command: {}", command);
         }
     }
-    println!("all done")
+    println!("all done");
 }
 
 //Functions
 fn verify_length(vector: &Vec<String>, length: usize) -> bool {
-    if vector.len() == length {
+    if vector.len() <= length {
         true
     } else {
         false
@@ -147,6 +143,18 @@ fn show_package_managers() {
     println!("yarn");
     println!("pnpm");
     println!("bunx");
+}
+fn webapp_list(){
+    println!("Choose a project template:");
+    println!("svelte");
+    println!("svelte-ts");
+    println!("vanilla");
+    println!("vanilla-ts");
+    println!("vue");
+    println!("vue-ts");
+    println!("react");
+    println!("react-ts");
+
 }
 
 fn web_api_list() {
@@ -213,12 +221,12 @@ fn create_java_api(app_name: &str) {
                            packaging, java_version, dependencies);
     println!("{}", url_link);
     let command = format!("curl -o {}.zip {}", app_name, url_link);
-    println!("{}",command);
+    println!("{}", command);
     execute_os_command(command.as_str());
 }
 
-fn create_python_api(app_name:&str){
-    let path = format!("./{}",app_name);
+fn create_python_api(app_name: &str) {
+    let path = format!("./{}", app_name);
     fs::create_dir_all(&path).expect("Error creating project folder");
     env::set_current_dir(&path).expect(format!("The {} doesn't exist", path).as_str());
 
@@ -235,12 +243,10 @@ fn create_python_api(app_name:&str){
     execute_os_command(create_env_command);
     execute_os_command(activate_env_and_install_flask);
     // execute_os_command(install_flask);
-    File::create(main_script).expect(format!("Failed to create {}",main_script).as_str());
+    File::create(main_script).expect(format!("Failed to create {}", main_script).as_str());
     fs::create_dir_all(template_folder).expect("Failed to create template folder");
-    let sample_code_path = format!("./{}",main_script);
-    fs::write(sample_code_path,sample_code).expect("Failed to write sample code");
+    let sample_code_path = format!("./{}", main_script);
+    fs::write(sample_code_path, sample_code).expect("Failed to write sample code");
 
     println!("To run the execute the commands:\n .venv/Scripts/activate | flask --app main run");
-
-
 }
