@@ -8,15 +8,13 @@ use std::path::Path;
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
     if args.len() < 3 {
-        println!("Usage: Migas <command> <input>");
+        println!("Usage: mut <command> <input>");
         return;
     }
-    println!("{:?}", args);
     args.remove(0);
     let tool_name = &args[0];
     let command = &args[1];
-    println!("{:?}", args);
-    if tool_name.ends_with("Migas") {
+    if tool_name.ends_with("mut") {
         let cli_tool_in_os = check_for_cli_tools();
         match command.as_str() {
             "cf" => {
@@ -41,7 +39,7 @@ fn main() {
                     execute_os_command(command.as_str());
                 } else {
                     println!("No name or template was choosen for the project");
-                    println!("Migas wa <name of project> <template>");
+                    println!("mut wa <name of project> <template>");
                 }
             }
             "capi" => {
@@ -79,7 +77,7 @@ fn main() {
 
                 } else {
                     println!("No name or template was choosen for the project");
-                    println!("Migas capi <name of project>");
+                    println!("mut capi <name of project>");
                 }
             }
             _ => {
@@ -87,6 +85,7 @@ fn main() {
             }
         }
     }
+    println!("all done")
 }
 
 //Functions
