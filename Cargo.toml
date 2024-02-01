@@ -2,6 +2,12 @@
 name = "My_cli_tool"
 version = "0.1.0"
 edition = "2021"
+authors = ["Miguel Ferreira"]
+description = "Simple cli to scaffold programming projects"
+repository = "https://github.com/MiguelFerreira18/nar-tool"
+keywords = ["cli"]
+categories = ["command-line-interface"]
+
 
 [dependencies]
 
