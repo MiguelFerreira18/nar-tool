@@ -7,6 +7,8 @@ description = "Simple cli to scaffold programming projects"
 repository = "https://github.com/MiguelFerreira18/nar-tool"
 keywords = ["cli"]
 categories = ["command-line-interface"]
+license = "Licence"
+license-file = "./Licence"
 
 
 [dependencies]
