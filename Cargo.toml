@@ -1,5 +1,5 @@
 [package]
-name = "My_cli_tool"
+name = "nar"
 version = "0.1.0"
 edition = "2021"
 authors = ["Miguel Ferreira"]
