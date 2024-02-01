@@ -1,13 +1,9 @@
 use std::{fs, io};
-use std::io::{BufWriter, Read, Write};
+use std::io::{Write};
 use std::process::Command;
 use std::env;
-use std::fmt::format;
 use std::fs::File;
 use std::path::Path;
-use std::ptr::copy;
-use reqwest::get;
-use zip::ZipArchive;
 
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
@@ -168,7 +164,7 @@ fn create_deno_api(app_name: &str) {
     env::set_current_dir(&path).expect("No such directory");
     execute_os_command(init_project);
     let file_name = "./main.ts";
-    let file = File::create(file_name);
+    let _file = File::create(file_name);
     let content = "\
 // @deno-types=\"npm:@types/express@4.17.15\"
 import express from \"npm:express@4.18.2\";
