@@ -7,13 +7,18 @@ use std::path::Path;
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        println!("Usage: mut <command> <input>");
+    if args.len() < 2 {
+        available_commands();
         return;
     }
     let command = env::args().nth(1).unwrap();
-    let file_name = env::args().nth(2).unwrap();
-    let cli_tool_in_os = check_for_cli_tools();
+    let mut file_name = String::new();
+    if let Some(arg) = env::args().nth(2) {
+        if !arg.is_empty() {
+            file_name = arg;
+        }
+    }
+    let cli_tool_in_os = check_for_cli_tools(vec!["npm", "yarn", "pnpm", "bunx"]);
     match command.as_str() {
         "cf" => {
             if !file_name.is_empty() {
@@ -24,8 +29,7 @@ fn main() {
             }
         }
         "cwa" => {
-            if !file_name.is_empty(){
-
+            if !file_name.is_empty() {
                 webapp_list();
                 let mut webapp_framework = String::new();
                 stdin().read_line(&mut webapp_framework).unwrap();
@@ -81,11 +85,59 @@ fn main() {
                 println!("mut capi <name of project>");
             }
         }
+        "help" => {
+            if !file_name.is_empty() {
+                match file_name.as_str() {
+                    "cf" => {
+                        println!("cf command or create file, creates a file in the current directory");
+                        println!("cf needs a file name with the given extension\n Ex:");
+                        println!("$ mut cf foo.ts \n");
+                        println!("--------------------\n");
+                        println!("$ mut cf bar.c");
+                    }
+                    "cwa" => {
+                        println!("cwa command or create web app, scaffolds a web app using vite from npm");
+                        println!("Other tools might be utilized if your system has them (yarn,pnpm,bunx)");
+                        println!("This tool supports all web frameworks that vite has, check it out: https://vitejs.dev/guide/");
+                        println!("cwa needs a name for the project and it will ask for a web framework afterwards\n Ex:");
+                        println!("$ mut cwa foo");
+                        webapp_list();
+                        println!("\n");
+                        println!("$ svelte-ts \n");
+                        println!("--------------------");
+                        println!("$ mut cwa bar");
+                        webapp_list();
+                        println!("\n");
+                        println!("$ vanilla");
+                    }
+                    "capi" => {
+                        println!("capi command or create API, scaffolds an API");
+                        println!("There are diferent API's, and for each there will be diferent requirements:");
+                        println!("Java (Springboot) - Make sure curl is installed");
+                        println!("Python (flask) - Make sure python3 is installed");
+                        println!("Elixir (Phoenix) - Currently in development");
+                        println!("Go (Gorila Mux + Gin) - Currently in development");
+                        println!("cwa needs a name for the project and it will prompt you for a framework afterwards\n Ex:");
+                        println!("$ mut capi foo");
+                        web_api_list();
+                        println!("$ 2");
+                        println!("--------------------");
+                        println!("$ mut capi bar");
+                        web_api_list();
+                        println!("$ 3");
+                    }
+                    _ => {
+                        available_commands();
+                    }
+                }
+            } else {
+                available_commands();
+            }
+        }
         _ => {
             println!("Unknown command: {}", command);
         }
     }
-    println!("all done");
 }
 
 //Functions
@@ -113,8 +165,7 @@ fn execute_os_command(command: &str) {
     println!("{}", message);
 }
 
-fn check_for_cli_tools() -> Box<str> {
-    let cli_tools = vec!["npm", "yarn", "pnpm", "bunx"];
+fn check_for_cli_tools(cli_tools: Vec<&str>) -> Box<str> {
     let mut result = "".to_string();
     for name in cli_tools.iter() {
         let output = if cfg!(target_os = "windows") {
@@ -138,13 +189,15 @@ fn check_for_cli_tools() -> Box<str> {
     result.into_boxed_str()
 }
 
+
 fn show_package_managers() {
     println!("npm");
     println!("yarn");
     println!("pnpm");
     println!("bunx");
 }
-fn webapp_list(){
+
+fn webapp_list() {
     println!("Choose a project template:");
     println!("svelte");
     println!("svelte-ts");
@@ -154,7 +207,6 @@ fn webapp_list(){
     println!("vue-ts");
     println!("react");
     println!("react-ts");
-
 }
 
 fn web_api_list() {
@@ -162,13 +214,25 @@ fn web_api_list() {
     println!("1 - Typescript (deno + express)");
     println!("2 - Java (Springboot)");
     println!("3 - Python (flask)");
-    println!("4 - Elixir (Phoenix) <em desenvolvimento>");
-    println!("5 - Go (Gorila Mux + Gin) <em desenvolvimento>");
+    println!("4 - Elixir (Phoenix) <In development>");
+    println!("5 - Go (Gorila Mux + Gin) <In development>");
+}
+
+fn available_commands() {
+    println!("List of commands:");
+    println!("cf - Create a file in the current directory");
+    println!("cwa - Create a web app in the current directory");
+    println!("capi - Create a API in the current directory");
+    println!("help - Shows the commands available");
 }
 
 
 //Scaffolding
 fn create_deno_api(app_name: &str) {
+    let deno_cli = check_for_cli_tools(vec!["deno"]);
+    if deno_cli.is_empty() {
+        execute_os_command("cargo install deno --locked");
+    }
     let init_project = "deno init";
     let path = format!("./{}", &app_name);
     fs::create_dir_all(&path).expect("Something went wrong when creating a folder");
@@ -219,9 +283,7 @@ fn create_java_api(app_name: &str) {
                            artifact_id, name,
                            description, package_name,
                            packaging, java_version, dependencies);
-    println!("{}", url_link);
     let command = format!("curl -o {}.zip {}", app_name, url_link);
-    println!("{}", command);
     execute_os_command(command.as_str());
 }
 
