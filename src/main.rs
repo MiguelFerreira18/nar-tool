@@ -1,40 +1,36 @@
-use std::{fs, io};
-use std::io::{stdin, Write};
-use std::process::Command;
-use std::env;
 use std::fs::File;
+use std::io::{stdin, Write};
 use std::path::Path;
+use std::process::Command;
+use std::{env, process};
+use std::{fs, io};
+
+use mutt::Config;
 
 fn main() {
-    let mut args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
+    let config = Config::build(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {err}");
         available_commands();
-        return;
-    }
-    let command = env::args().nth(1).unwrap();
-    let mut file_name = String::new();
-    if let Some(arg) = env::args().nth(2) {
-        if !arg.is_empty() {
-            file_name = arg;
-        }
-    }
+        process::exit(1);
+    });
+
     let cli_tool_in_os = check_for_cli_tools(vec!["npm", "yarn", "pnpm", "bunx"]);
-    match command.as_str() {
+    match config.command.as_str() {
         "cf" => {
-            if !file_name.is_empty() {
-                println!("creating file with name: {}", file_name);
-                File::create(file_name).expect("Error creating file");
+            if !config.file_name.is_empty() {
+                println!("creating file with name: {}", config.file_name);
+                File::create(config.file_name).expect("Error creating file");
             } else {
                 println!("No target file name given");
             }
         }
         "cwa" => {
-            if !file_name.is_empty() {
+            if !config.file_name.is_empty() {
                 webapp_list();
                 let mut webapp_framework = String::new();
                 stdin().read_line(&mut webapp_framework).unwrap();
 
-                println!("Creating webapp with the {}", file_name);
+                println!("Creating webapp with the {}", config.file_name);
                 //checks wich manager the os has as package manager
 
                 if cli_tool_in_os.is_empty() {
@@ -43,7 +39,10 @@ fn main() {
                     return;
                 }
 
-                let command = format!("{} create vite {} -- --template {}", &cli_tool_in_os, file_name, webapp_framework);
+                let command = format!(
+                    "{} create vite {} -- --template {}",
+                    &cli_tool_in_os, config.file_name, webapp_framework
+                );
                 execute_os_command(command.as_str());
             } else {
                 println!("No name or template was choosen for the project");
@@ -51,8 +50,8 @@ fn main() {
             }
         }
         "capi" => {
-            if !file_name.is_empty() {
-                let api_name = file_name.as_str();
+            if !config.file_name.is_empty() {
+                let api_name = config.file_name.as_str();
                 println!("Creating API {}", api_name);
                 let path_str = format!("./{}", api_name);
                 let path = Path::new(&path_str);
@@ -73,12 +72,18 @@ fn main() {
                     }
                 };
                 match number {
-                    1 => { create_deno_api(api_name); }
-                    2 => { create_java_api(api_name); }
-                    3 => { create_python_api(api_name); }
+                    1 => {
+                        create_deno_api(api_name);
+                    }
+                    2 => {
+                        create_java_api(api_name);
+                    }
+                    3 => {
+                        create_python_api(api_name);
+                    }
                     4 => {}
                     5 => {}
-                    _ => println!("No option was selected")
+                    _ => println!("No option was selected"),
                 }
             } else {
                 println!("No name or template was choosen for the project");
@@ -86,10 +91,12 @@ fn main() {
             }
         }
         "help" => {
-            if !file_name.is_empty() {
-                match file_name.as_str() {
+            if !config.file_name.is_empty() {
+                match config.file_name.as_str() {
                     "cf" => {
-                        println!("cf command or create file, creates a file in the current directory");
+                        println!(
+                            "cf command or create file, creates a file in the current directory"
+                        );
                         println!("cf needs a file name with the given extension\n Ex:");
                         println!("$ mut cf foo.ts \n");
                         println!("--------------------\n");
@@ -135,7 +142,7 @@ fn main() {
             }
         }
         _ => {
-            println!("Unknown command: {}", command);
+            println!("Unknown command: {}", config.command);
         }
     }
 }
@@ -189,7 +196,6 @@ fn check_for_cli_tools(cli_tools: Vec<&str>) -> Box<str> {
     result.into_boxed_str()
 }
 
-
 fn show_package_managers() {
     println!("npm");
     println!("yarn");
@@ -225,7 +231,6 @@ fn available_commands() {
     println!("capi - Create a API in the current directory");
     println!("help - Shows the commands available");
 }
-
 
 //Scaffolding
 fn create_deno_api(app_name: &str) {
@@ -266,7 +271,8 @@ fn create_java_api(app_name: &str) {
     let packaging = "jar";
     let java_version = 17;
     let dependencies = "web,lombok,security,data-jpa,h2,prometheus,restdocs";
-    let url_link = format!("https://start.spring.io/starter.zip?\
+    let url_link = format!(
+        "https://start.spring.io/starter.zip?\
     type={}&\
     language={}\
     Version={}&\
@@ -278,11 +284,20 @@ fn create_java_api(app_name: &str) {
     packageName={}&\
     packaging={}&\
     javaVersion={}&\
-    dependencies={}", project_type, language, version,
-                           base_dir, group_id,
-                           artifact_id, name,
-                           description, package_name,
-                           packaging, java_version, dependencies);
+    dependencies={}",
+        project_type,
+        language,
+        version,
+        base_dir,
+        group_id,
+        artifact_id,
+        name,
+        description,
+        package_name,
+        packaging,
+        java_version,
+        dependencies
+    );
     let command = format!("curl -o {}.zip {}", app_name, url_link);
     execute_os_command(command.as_str());
 }
@@ -312,3 +327,4 @@ fn create_python_api(app_name: &str) {
 
     println!("To run the execute the commands:\n .venv/Scripts/activate | flask --app main run");
 }
+
