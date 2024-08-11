@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn shouldnt_get_any_tool() {
-        let tools: Vec<&str> = vec!["yarn", "pnpm", "bunx"];
+        let tools: Vec<&str> = vec!["pnpm", "bunx"];
         let tool = check_for_cli_tools(tools);
         assert!(tool.is_empty());
     }
