@@ -72,9 +72,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust stable
-        uses: actions/setup-rust@v1
-        with:
-          rust-version: stable
       - name: Publish crate
         run: cargo publish --token ${{ secrets.CRATE_IO_API_TOKEN}} 
