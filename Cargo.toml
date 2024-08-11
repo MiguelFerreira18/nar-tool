@@ -1,6 +1,6 @@
 [package]
-name = "mutt"
-version = "0.1.4"
+name = "cmut"
+version = "1.0.0"
 edition = "2021"
 authors = ["Miguel Ferreira"]
 description = "Simple cli to scaffold programming projects"

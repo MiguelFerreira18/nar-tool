@@ -1,5 +1,5 @@
+use cmut::{Config, DomainErrors};
 use create_web_app::WebAppConfig;
-use mutt::{Config, DomainErrors};
 use std::fs::File;
 
 pub mod create_web_app;

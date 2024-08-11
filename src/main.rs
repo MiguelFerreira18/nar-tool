@@ -4,9 +4,8 @@ use std::path::Path;
 use std::{env, process};
 use std::{fs, io};
 
-use cli_commands::create_web_app::WebAppConfig;
 use cli_commands::{create_file, create_web_app};
-use mutt::{check_for_cli_tools, Config, DomainErrors};
+use cmut::{check_for_cli_tools, Config};
 
 pub mod cli_commands;
 
@@ -233,7 +232,7 @@ fn create_python_api(app_name: &str) {
     fs::create_dir_all(&path).expect("Error creating project folder");
     env::set_current_dir(&path).expect(format!("The {} doesn't exist", path).as_str());
 
-    let create_env_command = "python3 -m venv .venv";
+    let create_env_command = "python3mutt -m venv .venv";
     let activate_env_and_install_flask = if cfg!(target_os = "windows") {
         ".venv\\Scripts\\activate && pip install Flask"
     } else {

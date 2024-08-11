@@ -1,6 +1,6 @@
 use core::str;
 
-use mutt::{Config, DomainErrors};
+use cmut::{Config, DomainErrors};
 
 use crate::show_package_managers;
 
