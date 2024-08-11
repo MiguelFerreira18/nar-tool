@@ -1,53 +1,28 @@
 use std::fs::File;
 use std::io::{stdin, Write};
 use std::path::Path;
-use std::process::Command;
 use std::{env, process};
 use std::{fs, io};
 
-use mutt::Config;
+use cli_commands::create_web_app::WebAppConfig;
+use cli_commands::{create_file, create_web_app};
+use mutt::{check_for_cli_tools, Config, DomainErrors};
+
+pub mod cli_commands;
 
 fn main() {
-    let config = Config::build(env::args()).unwrap_or_else(|err| {
+    let cli_tool_in_os = check_for_cli_tools(vec!["npm", "yarn", "pnpm", "bunx"]);
+    let config = Config::build(env::args(), cli_tool_in_os.clone()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         available_commands();
         process::exit(1);
     });
-
-    let cli_tool_in_os = check_for_cli_tools(vec!["npm", "yarn", "pnpm", "bunx"]);
     match config.command.as_str() {
-        "cf" => {
-            if !config.file_name.is_empty() {
-                println!("creating file with name: {}", config.file_name);
-                File::create(config.file_name).expect("Error creating file");
-            } else {
-                println!("No target file name given");
-            }
-        }
+        "cf" => create_file(config),
         "cwa" => {
-            if !config.file_name.is_empty() {
-                webapp_list();
-                let mut webapp_framework = String::new();
-                stdin().read_line(&mut webapp_framework).unwrap();
-
-                println!("Creating webapp with the {}", config.file_name);
-                //checks wich manager the os has as package manager
-
-                if cli_tool_in_os.is_empty() {
-                    println!("You should install either one of the following tools:");
-                    show_package_managers();
-                    return;
-                }
-
-                let command = format!(
-                    "{} create vite {} -- --template {}",
-                    &cli_tool_in_os, config.file_name, webapp_framework
-                );
-                execute_os_command(command.as_str());
-            } else {
-                println!("No name or template was choosen for the project");
-                println!("mut wa <name of project> <template>");
-            }
+            webapp_list();
+            let option_framework = get_input();
+            create_web_app(config, option_framework);
         }
         "capi" => {
             if !config.file_name.is_empty() {
@@ -147,55 +122,6 @@ fn main() {
     }
 }
 
-//Functions
-fn verify_length(vector: &Vec<String>, length: usize) -> bool {
-    if vector.len() <= length {
-        true
-    } else {
-        false
-    }
-}
-
-fn execute_os_command(command: &str) {
-    let output = if cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .args(["/C", command])
-            .output()
-            .expect("Failed to execute the process")
-    } else {
-        Command::new("sh")
-            .arg(command)
-            .output()
-            .expect("Failed to execute the process")
-    };
-    let message = String::from_utf8(output.stdout).expect("Failed to read output");
-    println!("{}", message);
-}
-
-fn check_for_cli_tools(cli_tools: Vec<&str>) -> Box<str> {
-    let mut result = "".to_string();
-    for name in cli_tools.iter() {
-        let output = if cfg!(target_os = "windows") {
-            Command::new("cmd")
-                .args(["/C", format!("{} --version", name).as_str()])
-                .output()
-                .expect("Failed to execute command")
-        } else {
-            Command::new("sh")
-                .arg("-c")
-                .arg(format!("{} --version", name).as_str())
-                .output()
-                .expect("Failed to execute command")
-        };
-
-        if output.status.success() {
-            result = name.to_string();
-            break;
-        }
-    }
-    result.into_boxed_str()
-}
-
 fn show_package_managers() {
     println!("npm");
     println!("yarn");
@@ -236,13 +162,13 @@ fn available_commands() {
 fn create_deno_api(app_name: &str) {
     let deno_cli = check_for_cli_tools(vec!["deno"]);
     if deno_cli.is_empty() {
-        execute_os_command("cargo install deno --locked");
+        let _ = Config::execute_os_command("cargo install deno --locked");
     }
     let init_project = "deno init";
     let path = format!("./{}", &app_name);
     fs::create_dir_all(&path).expect("Something went wrong when creating a folder");
     env::set_current_dir(&path).expect("No such directory");
-    execute_os_command(init_project);
+    let _ = Config::execute_os_command(init_project);
     let file_name = "./main.ts";
     let _file = File::create(file_name);
     let content = "\
@@ -299,7 +225,7 @@ fn create_java_api(app_name: &str) {
         dependencies
     );
     let command = format!("curl -o {}.zip {}", app_name, url_link);
-    execute_os_command(command.as_str());
+    let _ = Config::execute_os_command(command.as_str());
 }
 
 fn create_python_api(app_name: &str) {
@@ -317,8 +243,8 @@ fn create_python_api(app_name: &str) {
     let template_folder = "templates";
     let sample_code = "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hello_flask():\n  return '<p>Hello, world!</p>'";
 
-    execute_os_command(create_env_command);
-    execute_os_command(activate_env_and_install_flask);
+    let _ = Config::execute_os_command(create_env_command);
+    let _ = Config::execute_os_command(activate_env_and_install_flask);
     // execute_os_command(install_flask);
     File::create(main_script).expect(format!("Failed to create {}", main_script).as_str());
     fs::create_dir_all(template_folder).expect("Failed to create template folder");
@@ -328,3 +254,10 @@ fn create_python_api(app_name: &str) {
     println!("To run the execute the commands:\n .venv/Scripts/activate | flask --app main run");
 }
 
+fn get_input() -> Option<String> {
+    let mut input = String::new();
+    match stdin().read_line(&mut input) {
+        Ok(_) => Some(String::from(input.trim())),
+        Err(_) => None,
+    }
+}
