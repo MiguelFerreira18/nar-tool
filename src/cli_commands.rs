@@ -22,7 +22,10 @@ pub fn create_web_app(config: Config, option_web_app: Option<String>) {
             }
         };
     match web_app.execute() {
-        Ok(statement) => println!("{}", statement),
+        Ok(statement) => {
+            println!("HAD ERROR OR NOT");
+            println!("{}", statement)
+        }
         Err(DomainErrors::FailedToExecuteOsCommand(error_log)) => {
             println!("Failed to execute command due to: {}", error_log)
         }
@@ -57,7 +60,7 @@ mod tests {
 
     #[test]
     fn should_create_a_web_app() {
-        let file_name = "foo";
+        let file_name = "foobar";
         let command = "cwa";
         let tool = "npm";
         let option_framework = Some(String::from("svelte-ts"));
