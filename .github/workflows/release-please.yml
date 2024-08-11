@@ -73,4 +73,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Publish crate
-        run: cargo publish --token ${{ secrets.CRATE_IO_API_TOKEN}} 
+        run: cargo publish --token ${{ secrets.CRATES_IO_API_TOKEN}} 
