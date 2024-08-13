@@ -19,9 +19,7 @@ jobs:
       with:
         otp-version: '27'
         elixir-version: '1.17.2'
-    - run: mix archive.install hex phx_new 
-    - run: mix phx.new demo --install
-    - run: ls
+    - run: mix archive.install hex phx_new  
     - name: Set up node.js 20.11
       uses: actions/setup-node@v4
       with:

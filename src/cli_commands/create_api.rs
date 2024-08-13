@@ -313,7 +313,7 @@ impl BuildApi for ElixirApiConfig {
         let assets_string = if !self.assets { "--no-assets" } else { "" };
         let html_string = if !self.html { "--no-html" } else { "" };
         let command = format!(
-            "mix phx.new {} --database {} {} {}",
+            "mix phx.new {} --install --database {} {} {}",
             self.name, self.database, assets_string, html_string,
         );
         match Config::execute_os_command(&command) {
