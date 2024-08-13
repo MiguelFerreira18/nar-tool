@@ -108,7 +108,7 @@ mod tests {
 
         assert!(api.is_ok());
         assert!(ApiConfig::execute(api.unwrap()).is_ok());
-        assert!(remove_file(format!("{}.zip", name)).is_ok());
+        assert!(remove_file(format!("./{}.zip", name)).is_ok());
     }
 
     #[test]
