@@ -1,7 +1,10 @@
 use std::process::Command;
-
+#[derive(Debug)]
 pub enum DomainErrors {
     FailedToExecuteOsCommand(String),
+    FrameworkIsntValid(String),
+    PathAlreadyExists(String),
+    FailedToCreateSpringBootConfig,
 }
 
 pub struct Config {

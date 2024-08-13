@@ -1,7 +1,9 @@
 use cmut::{Config, DomainErrors};
+use create_api::ApiConfig;
 use create_web_app::WebAppConfig;
 use std::fs::File;
 
+pub mod create_api;
 pub mod create_web_app;
 
 pub fn create_file(config: Config) {
@@ -23,13 +25,16 @@ pub fn create_web_app(config: Config, option_web_app: Option<String>) {
         };
     match web_app.execute() {
         Ok(statement) => {
-            println!("HAD ERROR OR NOT");
             println!("{}", statement)
         }
-        Err(DomainErrors::FailedToExecuteOsCommand(error_log)) => {
-            println!("Failed to execute command due to: {}", error_log)
+        Err(error) => {
+            println!("Failed to execute command due to:  {:?}", error)
         }
     }
+}
+
+pub fn create_api(api_config: ApiConfig) -> Result<bool, DomainErrors> {
+    api_config.build_api()
 }
 
 #[cfg(test)]
@@ -39,6 +44,8 @@ mod tests {
         fs::{remove_dir_all, remove_file},
         path::Path,
     };
+
+    use create_api::SpringBootApi;
 
     use super::*;
 
@@ -73,5 +80,36 @@ mod tests {
             assert!(Path::new(&file_name).exists());
             let _ = remove_dir_all(file_name);
         }
+    }
+
+    #[test]
+    fn should_create_a_web_api_in_spring_boot() -> Result<(), String> {
+        let name = "foobar_springboot";
+        let project_type = "maven";
+        let language = "java";
+        let version = "3.2.0";
+        let group = "foo.bar.foobar";
+        let description = "description";
+        let package_name = format!("{}.{}", group, name);
+        let packaging = "jar";
+        let java = 17;
+
+        let api = SpringBootApi::build(
+            name.to_string(),
+            project_type.to_string(),
+            language.to_string(),
+            version.to_string(),
+            group.to_string(),
+            description.to_string(),
+            package_name.to_string(),
+            packaging.to_string(),
+            java,
+        );
+
+        assert!(api.is_ok());
+        assert!(ApiConfig::execute(api.unwrap()).is_ok());
+
+        let _ = remove_dir_all(name);
+        Ok(())
     }
 }

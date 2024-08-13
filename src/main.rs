@@ -4,6 +4,7 @@ use std::path::Path;
 use std::{env, process};
 use std::{fs, io};
 
+use cli_commands::create_api::ApiConfig;
 use cli_commands::{create_file, create_web_app};
 use cmut::{check_for_cli_tools, Config};
 
@@ -24,44 +25,18 @@ fn main() {
             create_web_app(config, option_framework);
         }
         "capi" => {
-            if !config.file_name.is_empty() {
-                let api_name = config.file_name.as_str();
-                println!("Creating API {}", api_name);
-                let path_str = format!("./{}", api_name);
-                let path = Path::new(&path_str);
-                if path.exists() {
-                    println!("A folder with that name exists in the current directory");
-                    return;
+            if let Some(framework) = get_framework_input() {
+                let config = ApiConfig::build(config, framework);
+                if config.is_ok() {
+                    match config.unwrap().build_api() {
+                        Ok(_) => println!("The api was created with success"),
+                        Err(error) => {
+                            println!("There was an error when creating the api: {:?}", error)
+                        }
+                    };
+                } else {
+                    println!("A error occourred when creating the api configuration");
                 }
-                let number = loop {
-                    let mut input = String::new();
-                    web_api_list();
-                    io::stdout().flush().unwrap();
-                    io::stdin().read_line(&mut input).unwrap();
-
-                    match input.trim().parse::<i32>() {
-                        Ok(n) if n >= 1 && n <= 5 => break n,
-                        Ok(_) => println!("The number must be between 1 and 5. Please try again."),
-                        Err(_) => println!("That's not a valid number! Please try again."),
-                    }
-                };
-                match number {
-                    1 => {
-                        create_deno_api(api_name);
-                    }
-                    2 => {
-                        create_java_api(api_name);
-                    }
-                    3 => {
-                        create_python_api(api_name);
-                    }
-                    4 => {}
-                    5 => {}
-                    _ => println!("No option was selected"),
-                }
-            } else {
-                println!("No name or template was choosen for the project");
-                println!("mut capi <name of project>");
             }
         }
         "help" => {
@@ -142,7 +117,7 @@ fn webapp_list() {
 
 fn web_api_list() {
     println!("Choose a project template:");
-    println!("1 - Typescript (deno + express)");
+    println!("1 - Typescript (deno + express) **temporarely disabled**");
     println!("2 - Java (Springboot)");
     println!("3 - Python (flask)");
     println!("4 - Elixir (Phoenix) <In development>");
@@ -155,6 +130,14 @@ fn available_commands() {
     println!("cwa - Create a web app in the current directory");
     println!("capi - Create a API in the current directory");
     println!("help - Shows the commands available");
+}
+fn get_framework_input() -> Option<u8> {
+    web_api_list();
+    let framework_string = get_input()?;
+    if let Ok(framework) = framework_string.trim().parse::<u8>() {
+        return Some(framework);
+    }
+    None
 }
 
 //Scaffolding
@@ -181,50 +164,6 @@ res.send(\"Welcome to the Dinosaur API!\");
 
 app.listen(8000);";
     fs::write(file_name, content).expect("Unable to write file");
-}
-
-fn create_java_api(app_name: &str) {
-    let project_type = "maven-project";
-    let language = "java&boot";
-    let version = "3.2.2";
-    let base_dir = app_name;
-    let group_id = "isep.ipp.pt";
-    let artifact_id = app_name;
-    let name = app_name;
-    let description = "emo%20project%20for%20Spring%20Boot";
-    let package_name = format!("{}.{}", group_id, name);
-    let packaging = "jar";
-    let java_version = 17;
-    let dependencies = "web,lombok,security,data-jpa,h2,prometheus,restdocs";
-    let url_link = format!(
-        "https://start.spring.io/starter.zip?\
-    type={}&\
-    language={}\
-    Version={}&\
-    baseDir={}&\
-    groupId={}&\
-    artifactId={}&\
-    name={}&\
-    description={}&\
-    packageName={}&\
-    packaging={}&\
-    javaVersion={}&\
-    dependencies={}",
-        project_type,
-        language,
-        version,
-        base_dir,
-        group_id,
-        artifact_id,
-        name,
-        description,
-        package_name,
-        packaging,
-        java_version,
-        dependencies
-    );
-    let command = format!("curl -o {}.zip {}", app_name, url_link);
-    let _ = Config::execute_os_command(command.as_str());
 }
 
 fn create_python_api(app_name: &str) {
