@@ -51,6 +51,9 @@ impl Config {
         if output.status.success() {
             Ok(output.status.success())
         } else {
+            if command.contains("curl") {
+                return Ok(false);
+            }
             let message = String::from_utf8(output.stdout).expect("Failed to read output");
             Err(DomainErrors::FailedToExecuteOsCommand(message))
         }
