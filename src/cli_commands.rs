@@ -41,11 +41,11 @@ pub fn create_api(api_config: ApiConfig) -> Result<bool, DomainErrors> {
 mod tests {
 
     use std::{
-        fs::{remove_dir_all, remove_file},
+        fs::{remove_dir, remove_dir_all, remove_file},
         path::Path,
     };
 
-    use create_api::SpringBootApi;
+    use create_api::{ElixirApiConfig, SpringBootApiConfig};
 
     use super::*;
 
@@ -83,7 +83,7 @@ mod tests {
     }
 
     #[test]
-    fn should_create_a_web_api_in_spring_boot() -> Result<(), String> {
+    fn should_create_a_web_api_in_spring_boot() {
         let name = "foobar_springboot";
         let project_type = "maven";
         let language = "java";
@@ -94,7 +94,7 @@ mod tests {
         let packaging = "jar";
         let java = 17;
 
-        let api = SpringBootApi::build(
+        let api = SpringBootApiConfig::build(
             name.to_string(),
             project_type.to_string(),
             language.to_string(),
@@ -108,8 +108,20 @@ mod tests {
 
         assert!(api.is_ok());
         assert!(ApiConfig::execute(api.unwrap()).is_ok());
+        assert!(remove_file(format!("{}.zip", name)).is_ok());
+    }
 
-        let _ = remove_dir_all(name);
-        Ok(())
+    #[test]
+    fn should_create_a_web_api_in_phoenix() {
+        let name = "foobar_phoenix";
+        let database = "postgres";
+        let assets = true;
+        let html = true;
+
+        let api = ElixirApiConfig::build(name, database, assets, html);
+
+        assert!(api.is_ok());
+        assert!(ApiConfig::execute(api.unwrap()).is_ok());
+        assert!(remove_dir_all(name).is_ok());
     }
 }

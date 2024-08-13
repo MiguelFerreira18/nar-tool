@@ -119,8 +119,8 @@ fn web_api_list() {
     println!("Choose a project template:");
     println!("1 - Typescript (deno + express) **temporarely disabled**");
     println!("2 - Java (Springboot)");
-    println!("3 - Python (flask)");
-    println!("4 - Elixir (Phoenix) <In development>");
+    println!("3 - Elixir (Phoenix) <In development>");
+    println!("4 - Python (flask)");
     println!("5 - Go (Gorila Mux + Gin) <In development>");
 }
 
