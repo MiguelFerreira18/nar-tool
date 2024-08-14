@@ -1,8 +1,7 @@
 use std::{
-    collections::{btree_map::Values, BTreeMap, HashMap},
-    env::VarError,
-    error,
-    fmt::format,
+    collections::BTreeMap,
+    env::{self},
+    fs::{self, File},
     path::Path,
     u8,
 };
@@ -38,6 +37,10 @@ impl ApiConfig {
                 Err(error) => Err(error),
             },
             3 => match create_phoenix_config(&self.name) {
+                Ok(config) => Ok(ApiConfig::execute(config).is_ok()),
+                Err(error) => Err(error),
+            },
+            4 => match FlaskApiConfig::build(self.name.clone()) {
                 Ok(config) => Ok(ApiConfig::execute(config).is_ok()),
                 Err(error) => Err(error),
             },
@@ -401,5 +404,60 @@ fn get_html() -> bool {
         "yes" | "y" => true,
         "no" | "n" => false,
         _ => true,
+    }
+}
+
+// NOTE: FLASK
+
+#[derive(Debug)]
+pub struct FlaskApiConfig {
+    name: String,
+}
+
+impl FlaskApiConfig {
+    pub fn build(name: String) -> Result<FlaskApiConfig, DomainErrors> {
+        Ok(FlaskApiConfig { name })
+    }
+}
+
+// TODO: CHANGE THE DOMAIN ERRORS LATER FOR PYTHON
+impl BuildApi for FlaskApiConfig {
+    fn execute(&self) -> Result<bool, DomainErrors> {
+        let path = format!("./{}", self.name);
+        fs::create_dir_all(&path).expect("Error creating project folder");
+        env::set_current_dir(&path).expect(format!("the {} doesn't exist", path).as_str());
+
+        let create_env_command = "python3 -m venv .venv";
+
+        let main_script = "main.py";
+        let template_folder = "templates";
+        let sample_code = "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hello_flask():\n  return '<p>Hello, world!</p>'";
+        if Config::execute_os_command(create_env_command).is_err() {
+            return Err(DomainErrors::FailedToCreateSpringBootConfig);
+        };
+        File::create(main_script).expect(format!("Failed to create {}", main_script).as_str());
+        fs::create_dir_all(template_folder).expect("Failed to create template folder");
+        let sample_code_path = format!("./{}", main_script);
+        fs::write(sample_code_path, sample_code).expect("Failed to write sample code");
+
+        println!(
+            "To run the execute the commands:\n {} ",
+            tool_tip_for_os_python_api(&self.name)
+        );
+        Ok(true)
+    }
+}
+
+fn tool_tip_for_os_python_api(name: &str) -> String {
+    if cfg!(target_os = "windows") {
+        format!(
+            "cd ./{} | .venv/scripts/activate | pip install Flask | flask --app main run",
+            name
+        )
+    } else {
+        format!(
+            "cd ./{} && source .venv/bin/activate && pip install Flask && flask --app main run",
+            name
+        )
     }
 }

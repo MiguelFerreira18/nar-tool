@@ -119,7 +119,7 @@ fn web_api_list() {
     println!("Choose a project template:");
     println!("1 - Typescript (deno + express) **temporarely disabled**");
     println!("2 - Java (Springboot)");
-    println!("3 - Elixir (Phoenix) <In development>");
+    println!("3 - Elixir (Phoenix)");
     println!("4 - Python (flask)");
     println!("5 - Go (Gorila Mux + Gin) <In development>");
 }
@@ -164,32 +164,6 @@ res.send(\"Welcome to the Dinosaur API!\");
 
 app.listen(8000);";
     fs::write(file_name, content).expect("Unable to write file");
-}
-
-fn create_python_api(app_name: &str) {
-    let path = format!("./{}", app_name);
-    fs::create_dir_all(&path).expect("Error creating project folder");
-    env::set_current_dir(&path).expect(format!("The {} doesn't exist", path).as_str());
-
-    let create_env_command = "python3mutt -m venv .venv";
-    let activate_env_and_install_flask = if cfg!(target_os = "windows") {
-        ".venv\\Scripts\\activate && pip install Flask"
-    } else {
-        "source .venv/bin/activate && pip install Flask"
-    };
-    let main_script = "main.py";
-    let template_folder = "templates";
-    let sample_code = "from flask import Flask\napp = Flask(__name__)\n\n@app.route('/')\ndef hello_flask():\n  return '<p>Hello, world!</p>'";
-
-    let _ = Config::execute_os_command(create_env_command);
-    let _ = Config::execute_os_command(activate_env_and_install_flask);
-    // execute_os_command(install_flask);
-    File::create(main_script).expect(format!("Failed to create {}", main_script).as_str());
-    fs::create_dir_all(template_folder).expect("Failed to create template folder");
-    let sample_code_path = format!("./{}", main_script);
-    fs::write(sample_code_path, sample_code).expect("Failed to write sample code");
-
-    println!("To run the execute the commands:\n .venv/Scripts/activate | flask --app main run");
 }
 
 fn get_input() -> Option<String> {

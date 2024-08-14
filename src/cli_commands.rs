@@ -41,11 +41,13 @@ pub fn create_api(api_config: ApiConfig) -> Result<bool, DomainErrors> {
 mod tests {
 
     use std::{
-        fs::{remove_dir, remove_dir_all, remove_file},
+        fs::{remove_dir_all, remove_file},
         path::Path,
+        thread,
+        time::Duration,
     };
 
-    use create_api::{ElixirApiConfig, SpringBootApiConfig};
+    use create_api::{ElixirApiConfig, FlaskApiConfig, SpringBootApiConfig};
 
     use super::*;
 
@@ -84,7 +86,7 @@ mod tests {
 
     #[test]
     fn should_create_a_web_api_in_spring_boot() {
-        let name = "foobar_springboot";
+        let name = "springboot";
         let project_type = "maven";
         let language = "java";
         let version = "3.2.0";
@@ -113,7 +115,7 @@ mod tests {
 
     #[test]
     fn should_create_a_web_api_in_phoenix() {
-        let name = "foobar_phoenix";
+        let name = "phoenix";
         let database = "postgres";
         let assets = true;
         let html = true;
