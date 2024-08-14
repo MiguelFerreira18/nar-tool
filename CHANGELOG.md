@@ -1,21 +1,5 @@
 # Changelog
 
-## [1.1.0](https://github.com/MiguelFerreira18/mut-tool/compare/v1.0.0...v1.1.0) (2024-08-13)
-
-
-### Features
-
-* allow creation of elixir web api with phoenix ([45ad5e5](https://github.com/MiguelFerreira18/mut-tool/commit/45ad5e54eb6c0d96425d86c580e3d9e03ceb370d))
-* allow to create a spring boot api with diferent specifications ([baa7733](https://github.com/MiguelFerreira18/mut-tool/commit/baa7733a336e1e7909c228d00f495745190e3f6d))
-
-
-### Bug Fixes
-
-* add dirty fix for curl command on windows ([0957bba](https://github.com/MiguelFerreira18/mut-tool/commit/0957bba6f91aa0eae476af53c1a84bee131d6ad8))
-* add force flag to the installation of archive with mix ([1c75ba8](https://github.com/MiguelFerreira18/mut-tool/commit/1c75ba8959a5350673a53b1f378b4cac2edfba3e))
-* fix ci/cd to allow the elixir tool to install dependencies so that tests can be run ([593d170](https://github.com/MiguelFerreira18/mut-tool/commit/593d170a87153f7a1d9ea1eb011f90f6926d27b6))
-* fix typo ([5d12a1b](https://github.com/MiguelFerreira18/mut-tool/commit/5d12a1b56815d71296ebc9d9acd1ed358c754d3e))
-
 ## 1.0.0 (2024-08-11)
 
 
